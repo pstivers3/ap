@@ -512,12 +512,12 @@
         // Draw Ball
         ctx.beginPath();
         ctx.arc(state.ball.x, state.ball.y, CONFIG.ballRadius, 0, Math.PI * 2);
-        ctx.fillStyle = state.running ? (state.paused ? '#64748b' : CONFIG.accentColor) : CONFIG.dangerColor;
+        ctx.fillStyle = '#f4f8ff';
         ctx.fill();
         
         // Add a slight glow to the ball
         ctx.shadowBlur = 10;
-        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowColor = 'rgba(180, 230, 255, 0.9)';
         ctx.fill();
         ctx.shadowBlur = 0;
     }

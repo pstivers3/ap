@@ -442,7 +442,7 @@
                 // Let a missed ball visibly escape beyond the arena before resetting it.
                 state.misses++;
                 if (state.misses >= 2) {
-                    missesEl.innerText = 'End';
+                    missesEl.innerText = state.misses;
                     gameOver();
                 } else {
                     missesEl.innerText = state.misses;
