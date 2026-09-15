@@ -320,6 +320,7 @@
     };
 
     function init() {
+        initializeSliderDefaults();
         resize();
         window.addEventListener('resize', resize);
         if (window.visualViewport) {
@@ -344,6 +345,26 @@
         setupSliders();
         resetGame();
         requestAnimationFrame(loop);
+    }
+
+    function initializeSliderDefaults() {
+        const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const phoneSizedScreen = Math.min(viewportWidth, viewportHeight) <= 600;
+
+        if (!phoneSizedScreen) return;
+
+        state.settings.speed = 0.7;
+        state.settings.paddle = 45;
+        state.settings.circle = 95;
+
+        ['speed', 'paddle', 'circle'].forEach(key => {
+            const value = state.settings[key];
+            document.getElementById(`${key}-slider`).value = value;
+            document.getElementById(`${key}-slider-p`).value = value;
+            document.getElementById(`${key}-val`).innerText = formatVal(key, value);
+            document.getElementById(`${key}-val-p`).innerText = formatVal(key, value);
+        });
     }
 
     function setupSliders() {
