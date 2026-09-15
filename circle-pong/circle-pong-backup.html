@@ -123,12 +123,18 @@
 
         #misses-note { font-size: 1.125rem; margin-top: 1.125rem; }
         #speed-note { font-size: 1.125rem; }
+        #misses-note, #speed-note {
+            color: #ffffff;
+            opacity: 0.65;
+            text-shadow: none;
+        }
 
         #pause-hint {
             position: absolute;
             bottom: 2rem;
             font-size: 1.225rem;
-            opacity: 0.5;
+            color: #ffffff;
+            opacity: 0.65;
         }
         .hidden { display: none !important; }
     </style>
@@ -140,7 +146,7 @@
         <div>Score: <span id="score">0</span></div>
         <div>Misses: <span id="misses">0</span></div>
         <div id="misses-note">You are allowed one miss</div>
-        <div id="speed-note">The ball speed will progressively increase</div>
+        <div id="speed-note">The ball will gradually speed up</div>
     </div>
     <canvas id="gameCanvas"></canvas>
     
@@ -154,23 +160,23 @@
                 <div class="slider-group">
                     <div class="slider-header">
                         <span>Ball Speed</span>
-                        <span id="speed-val">1.0x</span>
+                        <span id="speed-val">1.2x</span>
                     </div>
-                    <input type="range" id="speed-slider" min="0.5" max="2" step="0.1" value="1">
+                    <input type="range" id="speed-slider" min="0.5" max="2" step="0.1" value="1.2">
                 </div>
                 <div class="slider-group">
                     <div class="slider-header">
                         <span>Paddle Size</span>
-                        <span id="paddle-val">50°</span>
+                        <span id="paddle-val">45°</span>
                     </div>
-                    <input type="range" id="paddle-slider" min="20" max="80" step="5" value="50">
+                    <input type="range" id="paddle-slider" min="20" max="80" step="5" value="45">
                 </div>
                 <div class="slider-group">
                     <div class="slider-header">
                         <span>Circle Size</span>
-                        <span id="circle-val">70%</span>
+                        <span id="circle-val">65%</span>
                     </div>
-                    <input type="range" id="circle-slider" min="50" max="95" step="5" value="70">
+                    <input type="range" id="circle-slider" min="50" max="95" step="5" value="65">
                 </div>
             </div>
         </div>
@@ -185,23 +191,23 @@
                 <div class="slider-group">
                     <div class="slider-header">
                         <span>Ball Speed</span>
-                        <span id="speed-val-p">1.0x</span>
+                        <span id="speed-val-p">1.2x</span>
                     </div>
-                    <input type="range" id="speed-slider-p" min="0.5" max="2" step="0.1" value="1">
+                    <input type="range" id="speed-slider-p" min="0.5" max="2" step="0.1" value="1.2">
                 </div>
                 <div class="slider-group">
                     <div class="slider-header">
                         <span>Paddle Size</span>
-                        <span id="paddle-val-p">50°</span>
+                        <span id="paddle-val-p">45°</span>
                     </div>
-                    <input type="range" id="paddle-slider-p" min="20" max="80" step="5" value="50">
+                    <input type="range" id="paddle-slider-p" min="20" max="80" step="5" value="45">
                 </div>
                 <div class="slider-group">
                     <div class="slider-header">
                         <span>Circle Size</span>
-                        <span id="circle-val-p">70%</span>
+                        <span id="circle-val-p">65%</span>
                     </div>
-                    <input type="range" id="circle-slider-p" min="50" max="95" step="5" value="70">
+                    <input type="range" id="circle-slider-p" min="50" max="95" step="5" value="65">
                 </div>
             </div>
         </div>
@@ -250,12 +256,12 @@
         speedMultiplier: 1,
         trail: [],
         ball: { x: 0, y: 0, dx: 0, dy: 0, speed: 1 },
-        paddle: { angle: 0, size: 50 * Math.PI / 180 }, // angle is center of paddle
+        paddle: { angle: 0, size: 45 * Math.PI / 180 }, // angle is center of paddle
         arena: { radius: 0 },
         settings: {
-            speed: 1,
-            paddle: 50,
-            circle: 70
+            speed: 1.2,
+            paddle: 45,
+            circle: 65
         },
         keys: {}
     };
