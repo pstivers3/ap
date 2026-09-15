@@ -330,7 +330,10 @@
         // Input setup
         window.addEventListener('keydown', (e) => {
             state.keys[e.code] = true;
-            if (e.code === 'Space') togglePause();
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!e.repeat) togglePause();
+            }
         });
         window.addEventListener('keyup', (e) => state.keys[e.code] = false);
         window.addEventListener('mousemove', handleMouseMove);
