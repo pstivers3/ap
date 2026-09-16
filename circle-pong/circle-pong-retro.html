@@ -6,11 +6,11 @@
     <title>Circle Pong by Stivers and agents</title>
     <style>
         :root {
-            --bg-color: #1e293b;
-            --text-color: #f8fafc;
-            --accent-color: #22d3ee;
-            --danger-color: #f43f5e;
-            --panel-bg: rgba(30, 41, 59, 0.8);
+            --bg-color: #000;
+            --text-color: #0f0; /* Classic Terminal Green */
+            --accent-color: #0f0;
+            --danger-color: #f00;
+            --panel-bg: #000;
         }
 
         body {
@@ -19,12 +19,25 @@
             overflow: hidden;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: monospace;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             user-select: none;
+            image-rendering: pixelated;
+        }
+
+        /* Scanline Overlay */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
         }
 
         #game-container {
@@ -58,75 +71,84 @@
         .panel {
             background: var(--panel-bg);
             padding: 2rem;
-            border-radius: 1rem;
-            backdrop-filter: blur(8px);
+            border: 4px solid var(--accent-color);
             pointer-events: auto;
             text-align: center;
-            min-width: 300px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 320px;
         }
 
-        h1 { margin: 0 0 1rem 0; font-size: 2rem; color: var(--accent-color); }
-        p { margin-bottom: 1.5rem; }
+        h1 {
+            margin: 0 0 1.5rem 0;
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+        }
+
+        p { margin-bottom: 2rem; }
 
         .controls {
-            margin-top: 1.5rem;
+            margin-top: 2rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
         .slider-group {
             display: flex;
             flex-direction: column;
             text-align: left;
-            gap: 0.25rem;
+            gap: 0.5rem;
         }
 
         .slider-header {
             display: flex;
             justify-content: space-between;
-            font-size: 0.875rem;
-            opacity: 0.8;
+            font-size: 1rem;
+            text-transform: uppercase;
         }
 
         input[type="range"] {
             width: 100%;
             cursor: pointer;
             accent-color: var(--accent-color);
+            background: #222;
+            height: 8px;
+            appearance: none;
+            border: 1px solid var(--accent-color);
+            box-sizing: border-box;
+            margin-left: 0;
+            margin-right: 0;
         }
 
         button {
             background-color: var(--accent-color);
-            color: var(--bg-color);
+            color: #000;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+            padding: 1rem 2rem;
             font-weight: bold;
             cursor: pointer;
-            font-size: 1rem;
-            transition: transform 0.1s, opacity 0.2s;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            font-family: monospace;
+            transition: opacity 0.1s;
         }
 
-        button:hover { opacity: 0.9; }
-        button:active { transform: scale(0.95); }
+        button:hover { opacity: 0.8; }
+        button:active { transform: scale(0.98); }
 
         #hud {
             position: absolute;
             top: 2rem;
             left: 2rem;
-            font-size: 1.5rem;
-            font-weight: bold;
+            font-size: 2.5rem;
             color: var(--accent-color);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
         }
 
         #misses-note { font-size: 1.125rem; margin-top: 1.125rem; }
         #speed-note { font-size: 1.125rem; }
         #misses-note, #speed-note {
-            color: #ffffff;
-            opacity: 0.65;
+            color: var(--accent-color);
             text-shadow: none;
         }
 
@@ -140,9 +162,9 @@
         }
 
         #pause-hint {
-            font-size: 1.225rem;
-            color: #ffffff;
-            opacity: 0.65;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            color: var(--accent-color);
         }
 
         @media (max-width: 600px) and (orientation: portrait) {
@@ -158,7 +180,7 @@
                 padding: 1rem;
             }
 
-            .panel h1 { margin-bottom: 0.75rem; }
+            .panel h1 { margin-bottom: 0.75rem; font-size: 2rem; }
             .panel p { margin: 0 0 1rem; }
             .controls { margin-top: 1rem; gap: 0.65rem; }
 
@@ -296,9 +318,9 @@
         ballRadius: 8,
         paddleThickness: 12,
         paddleOffset: 5, // distance from boundary
-        accentColor: '#22d3ee',
-        dangerColor: '#f43f5e',
-        boundaryColor: 'rgba(255, 255, 255, 0.1)'
+        accentColor: '#0f0',
+        dangerColor: '#f00',
+        boundaryColor: '#0f0'
     };
 
     let state = {
@@ -569,69 +591,34 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
 
-        // Draw Arena Boundary
+        // Dashed arcade arena; retain the original collision dimensions.
+        ctx.setLineDash([10, 10]);
         ctx.beginPath();
         ctx.arc(centerX, centerY, state.arena.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = CONFIG.boundaryColor;
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = state.running ? CONFIG.boundaryColor : CONFIG.dangerColor;
+        ctx.lineWidth = 4;
         ctx.stroke();
+        ctx.setLineDash([]);
 
-        // Draw Paddle
+        // Solid, flat-ended paddle at the original radius and thickness.
         const startAngle = state.paddle.angle - state.paddle.size / 2;
         const endAngle = state.paddle.angle + state.paddle.size / 2;
         const paddleRadius = state.arena.radius - CONFIG.paddleOffset - CONFIG.paddleThickness/2;
 
-        ctx.lineCap = 'round';
-
-        ctx.shadowColor = 'rgba(255, 107, 61, 0.85)';
-        ctx.shadowBlur = 28;
-        ctx.strokeStyle = 'rgba(255, 107, 61, 0.35)';
-        ctx.lineWidth = CONFIG.paddleThickness + 14;
+        ctx.lineCap = 'butt';
         ctx.beginPath();
         ctx.arc(centerX, centerY, paddleRadius, startAngle, endAngle);
-        ctx.stroke();
-
-        ctx.shadowBlur = 16;
-        ctx.strokeStyle = '#ff6b3d';
+        ctx.strokeStyle = CONFIG.accentColor;
         ctx.lineWidth = CONFIG.paddleThickness;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, paddleRadius, startAngle, endAngle);
         ctx.stroke();
 
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#ffe1c4';
-        ctx.lineWidth = Math.max(3, CONFIG.paddleThickness * 0.28);
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, paddleRadius, startAngle, endAngle);
-        ctx.stroke();
-
-        // Draw Ball Tail
-        for (let i = 0; i < state.trail.length; i++) {
-            const trailPoint = state.trail[i];
-            const progress = (i + 1) / state.trail.length;
-            ctx.globalAlpha = progress * 0.35;
-            ctx.fillStyle = '#9fd9ff';
-            ctx.beginPath();
-            ctx.arc(trailPoint.x, trailPoint.y, CONFIG.ballRadius * (0.35 + progress * 0.5), 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-
-        // Draw Ball
-        ctx.beginPath();
-        ctx.arc(state.ball.x, state.ball.y, CONFIG.ballRadius, 0, Math.PI * 2);
-        ctx.fillStyle = '#f4f8ff';
-        ctx.fill();
-        
-        // Add a slight glow to the ball
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(180, 230, 255, 0.9)';
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        // Square ball with no glow or trail, matching the reference presentation.
+        ctx.fillStyle = state.running ? (state.paused ? '#555' : CONFIG.accentColor) : CONFIG.dangerColor;
+        ctx.fillRect(state.ball.x - CONFIG.ballRadius, state.ball.y - CONFIG.ballRadius, CONFIG.ballRadius * 2, CONFIG.ballRadius * 2);
     }
 
     function loop() {
