@@ -308,7 +308,7 @@
         misses: 0,
         speedMultiplier: 1,
         trail: [],
-        ball: { x: 0, y: 0, dx: 0, dy: 0, speed: 1 },
+        ball: { x: 0, y: 0, dx: 0, dy: 0, speed: 1, missed: false },
         paddle: { angle: 0, size: 45 * Math.PI / 180 }, // angle is center of paddle
         arena: { radius: 0 },
         settings: {
@@ -431,6 +431,7 @@
     }
 
     function resetBall() {
+        state.ball.missed = false;
         state.ball.x = canvas.width / 2;
         state.ball.y = canvas.height / 2;
         
@@ -513,7 +514,7 @@
             while (diff < -Math.PI) diff += Math.PI * 2;
             while (diff > Math.PI) diff -= Math.PI * 2;
 
-            if (Math.abs(diff) <= state.paddle.size / 2) {
+            if (!state.ball.missed && Math.abs(diff) <= state.paddle.size / 2) {
                 // Bounce
                 state.score++;
                 scoreEl.innerText = state.score;
@@ -545,15 +546,19 @@
                     state.ball.x = centerX + normalX * (collisionRadius - 1);
                     state.ball.y = centerY + normalY * (collisionRadius - 1);
                     }
-            } else if (dist >= state.arena.radius + CONFIG.ballRadius * 2) {
-                // Let a missed ball visibly escape beyond the arena before resetting it.
-                state.misses++;
-                if (state.misses >= 2) {
-                    missesEl.innerText = state.misses;
-                    gameOver();
-                } else {
-                    missesEl.innerText = state.misses;
-                    resetBall();
+            } else {
+                // Once the ball misses the paddle, it cannot be caught while escaping.
+                state.ball.missed = true;
+                if (dist >= state.arena.radius + CONFIG.ballRadius * 2) {
+                    // Let a missed ball visibly escape beyond the arena before resetting it.
+                    state.misses++;
+                    if (state.misses >= 2) {
+                        missesEl.innerText = state.misses;
+                        gameOver();
+                    } else {
+                        missesEl.innerText = state.misses;
+                        resetBall();
+                    }
                 }
             }
         }
