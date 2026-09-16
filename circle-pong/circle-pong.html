@@ -301,7 +301,7 @@
         paddleOffset: 5, // distance from boundary
         accentColor: '#22d3ee',
         dangerColor: '#f43f5e',
-        boundaryColor: 'rgba(255, 255, 255, 0.1)'
+        boundaryColor: 'rgba(255, 255, 255, 0.15)'
     };
 
     let state = {
@@ -580,7 +580,7 @@
         ctx.beginPath();
         ctx.arc(centerX, centerY, state.arena.radius, 0, Math.PI * 2);
         ctx.strokeStyle = CONFIG.boundaryColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4;
         ctx.stroke();
 
         // Draw Paddle
