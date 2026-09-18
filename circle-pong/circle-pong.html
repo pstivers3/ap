@@ -295,7 +295,7 @@
 
     // Game Constants & State
     const CONFIG = {
-        baseBallSpeed: 4,
+        baseBallSpeed: 0.8, // Circle radii per second (4 px/frame at 60 Hz for a 300 px radius).
         ballRadius: 8,
         paddleThickness: 12,
         paddleOffset: 5, // distance from boundary
@@ -303,6 +303,8 @@
         dangerColor: '#f43f5e',
         boundaryColor: 'rgba(255, 255, 255, 0.11)'
     };
+
+    let lastFrameTime = null;
 
     let state = {
         running: false,
@@ -440,7 +442,7 @@
         
         // Random initial trajectory
         const angle = Math.random() * Math.PI * 2;
-        const speed = CONFIG.baseBallSpeed * state.settings.speed;
+        const speed = CONFIG.baseBallSpeed;
         state.ball.dx = Math.cos(angle) * speed;
         state.ball.dy = Math.sin(angle) * speed;
         state.trail = [];
@@ -450,6 +452,7 @@
         resetGame();
         state.running = true;
         state.paused = false;
+        lastFrameTime = performance.now();
         menuPanel.classList.add('hidden');
         pausePanel.classList.add('hidden');
         pauseBtn.innerText = 'Pause';
@@ -458,6 +461,7 @@
     function togglePause() {
         if (!state.running) return;
         state.paused = !state.paused;
+        lastFrameTime = performance.now();
         pausePanel.classList.toggle('hidden', !state.paused);
         pauseBtn.innerText = state.paused ? 'Resume' : 'Pause';
     }
@@ -489,7 +493,7 @@
         state.paddle.angle = Math.atan2(clientY - centerY, clientX - centerX);
     }
 
-    function update() {
+    function update(elapsedSeconds) {
         if (!state.running || state.paused) return;
 
         // Keyboard movement
@@ -497,9 +501,10 @@
         if (state.keys['ArrowLeft'] || state.keys['KeyA']) state.paddle.angle -= paddleSpeed;
         if (state.keys['ArrowRight'] || state.keys['KeyD']) state.paddle.angle += paddleSpeed;
 
-        // Ball movement
-        state.ball.x += state.ball.dx * state.settings.speed;
-        state.ball.y += state.ball.dy * state.settings.speed;
+        // Velocity is in circle radii per second; convert to pixels for this frame.
+        const movementScale = state.arena.radius * state.settings.speed * elapsedSeconds;
+        state.ball.x += state.ball.dx * movementScale;
+        state.ball.y += state.ball.dy * movementScale;
 
         // Collision Check
         const centerX = canvas.width / 2;
@@ -637,8 +642,10 @@
         ctx.shadowBlur = 0;
     }
 
-    function loop() {
-        update();
+    function loop(timestamp) {
+        const elapsedSeconds = lastFrameTime === null ? 0 : (timestamp - lastFrameTime) / 1000;
+        lastFrameTime = timestamp;
+        update(elapsedSeconds);
         draw();
         requestAnimationFrame(loop);
     }
