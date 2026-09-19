@@ -415,15 +415,28 @@
             document.documentElement.style.removeProperty('--app-height');
         }
 
+        const previousCenterX = canvas.width / 2;
+        const previousCenterY = canvas.height / 2;
         canvas.width = width;
         canvas.height = height;
-        updateArenaRadius();
+        updateArenaRadius(previousCenterX, previousCenterY);
         scaleOutsideUI();
     }
 
-    function updateArenaRadius() {
+    function updateArenaRadius(previousCenterX = canvas.width / 2, previousCenterY = canvas.height / 2) {
+        const previousRadius = state.arena.radius;
         const minDim = Math.min(canvas.width, canvas.height);
         state.arena.radius = (minDim / 2) * (state.settings.circle / 100);
+        if (previousRadius > 0) {
+            const ratio = state.arena.radius / previousRadius;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            // Preserve normalized positions, including the trail, without touching velocity.
+            for (const point of [state.ball, ...state.trail]) {
+                point.x = centerX + (point.x - previousCenterX) * ratio;
+                point.y = centerY + (point.y - previousCenterY) * ratio;
+            }
+        }
         scalePanels();
     }
 
