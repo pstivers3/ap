@@ -300,6 +300,7 @@
     };
 
     let lastFrameTime = null;
+    let drawingScale = 1; // Inverse browser zoom; rendering only, never collision dimensions.
 
     let state = {
         running: false,
@@ -458,7 +459,8 @@
         // Browser sidebars/window borders can introduce a small estimation error.
         const pageZoom = window.outerWidth > 0 ? window.outerWidth / window.innerWidth : 1;
         const pinchZoom = window.visualViewport ? window.visualViewport.scale : 1;
-        document.documentElement.style.setProperty('--ui-scale', 1 / (pageZoom * pinchZoom));
+        drawingScale = 1 / (pageZoom * pinchZoom);
+        document.documentElement.style.setProperty('--ui-scale', drawingScale);
         // Choose the existing compact typography by the unzoomed window size so
         // desktop zoom alone cannot switch the outside UI to phone styling.
         document.body.classList.toggle('compact-ui',
@@ -635,23 +637,23 @@
         ctx.lineCap = 'round';
 
         ctx.shadowColor = 'rgba(255, 107, 61, 0.85)';
-        ctx.shadowBlur = 28;
+        ctx.shadowBlur = 28 * drawingScale;
         ctx.strokeStyle = 'rgba(255, 107, 61, 0.35)';
-        ctx.lineWidth = CONFIG.paddleThickness + 14;
+        ctx.lineWidth = (CONFIG.paddleThickness + 14) * drawingScale;
         ctx.beginPath();
         ctx.arc(centerX, centerY, paddleRadius, startAngle, endAngle);
         ctx.stroke();
 
-        ctx.shadowBlur = 16;
+        ctx.shadowBlur = 16 * drawingScale;
         ctx.strokeStyle = '#ff6b3d';
-        ctx.lineWidth = CONFIG.paddleThickness;
+        ctx.lineWidth = CONFIG.paddleThickness * drawingScale;
         ctx.beginPath();
         ctx.arc(centerX, centerY, paddleRadius, startAngle, endAngle);
         ctx.stroke();
 
         ctx.shadowBlur = 0;
         ctx.strokeStyle = '#ffe1c4';
-        ctx.lineWidth = Math.max(3, CONFIG.paddleThickness * 0.28);
+        ctx.lineWidth = Math.max(3, CONFIG.paddleThickness * 0.28) * drawingScale;
         ctx.beginPath();
         ctx.arc(centerX, centerY, paddleRadius, startAngle, endAngle);
         ctx.stroke();
@@ -663,19 +665,19 @@
             ctx.globalAlpha = progress * 0.35;
             ctx.fillStyle = '#9fd9ff';
             ctx.beginPath();
-            ctx.arc(trailPoint.x, trailPoint.y, CONFIG.ballRadius * (0.35 + progress * 0.5), 0, Math.PI * 2);
+            ctx.arc(trailPoint.x, trailPoint.y, CONFIG.ballRadius * drawingScale * (0.35 + progress * 0.5), 0, Math.PI * 2);
             ctx.fill();
         }
         ctx.globalAlpha = 1;
 
         // Draw Ball
         ctx.beginPath();
-        ctx.arc(state.ball.x, state.ball.y, CONFIG.ballRadius, 0, Math.PI * 2);
+        ctx.arc(state.ball.x, state.ball.y, CONFIG.ballRadius * drawingScale, 0, Math.PI * 2);
         ctx.fillStyle = '#f4f8ff';
         ctx.fill();
         
         // Add a slight glow to the ball
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 10 * drawingScale;
         ctx.shadowColor = 'rgba(180, 230, 255, 0.9)';
         ctx.fill();
         ctx.shadowBlur = 0;
