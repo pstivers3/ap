@@ -63,6 +63,9 @@
             pointer-events: auto;
             text-align: center;
             min-width: 300px;
+            width: max-content;
+            flex-shrink: 0;
+            transform: scale(var(--panel-scale, 1));
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -115,8 +118,10 @@
 
         #hud {
             position: absolute;
-            top: 2rem;
-            left: 2rem;
+            top: calc(2rem * var(--ui-scale, 1));
+            left: calc(2rem * var(--ui-scale, 1));
+            transform: scale(var(--ui-scale, 1));
+            transform-origin: top left;
             font-size: 1.5rem;
             font-weight: bold;
             color: var(--accent-color);
@@ -133,7 +138,9 @@
 
         #pause-controls {
             position: absolute;
-            bottom: 2rem;
+            bottom: calc(2rem * var(--ui-scale, 1));
+            transform: scale(var(--ui-scale, 1));
+            transform-origin: bottom center;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -151,41 +158,29 @@
             #game-container {
                 height: var(--app-height, 100dvh);
             }
-
-            .panel {
-                box-sizing: border-box;
-                width: calc(100% - 1rem);
-                min-width: 0;
-                padding: 1rem;
-            }
-
-            .panel h1 { margin-bottom: 0.75rem; }
-            .panel p { margin: 0 0 1rem; }
-            #menu-text { margin-bottom: 0.5rem; }
-            .controls { margin-top: 1rem; gap: 0.65rem; }
-
-            #hud {
-                top: calc(0.75rem + env(safe-area-inset-top, 0px));
-                left: calc(0.75rem + env(safe-area-inset-left, 0px));
-                font-size: 1.125rem;
-            }
-
-            #misses-note {
-                margin-top: 0.5rem;
-            }
-
-            #misses-note,
-            #speed-note {
-                font-size: 0.875rem;
-            }
-
-            #pause-controls {
-                bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-                gap: 0.5rem;
-            }
-
-            #pause-hint { font-size: 1rem; }
         }
+
+        .compact-ui #hud {
+            top: calc(0.75rem * var(--ui-scale, 1) + env(safe-area-inset-top, 0px));
+            left: calc(0.75rem * var(--ui-scale, 1) + env(safe-area-inset-left, 0px));
+            font-size: 1.125rem;
+        }
+
+        .compact-ui #misses-note {
+            margin-top: 0.5rem;
+        }
+
+        .compact-ui #misses-note,
+        .compact-ui #speed-note {
+            font-size: 0.875rem;
+        }
+
+        .compact-ui #pause-controls {
+            bottom: calc(0.75rem * var(--ui-scale, 1) + env(safe-area-inset-bottom, 0px));
+            gap: 0.5rem;
+        }
+
+        .compact-ui #pause-hint { font-size: 1rem; }
 
         .hidden { display: none !important; }
     </style>
@@ -326,6 +321,10 @@
 
     function init() {
         initializeSliderDefaults();
+        // Observe layout changes, including panels becoming visible and game-over text.
+        const panelObserver = new ResizeObserver(scalePanels);
+        panelObserver.observe(menuPanel);
+        panelObserver.observe(pausePanel);
         resize();
         window.addEventListener('resize', resize);
         if (window.visualViewport) {
@@ -419,11 +418,38 @@
         canvas.width = width;
         canvas.height = height;
         updateArenaRadius();
+        scaleOutsideUI();
     }
 
     function updateArenaRadius() {
         const minDim = Math.min(canvas.width, canvas.height);
         state.arena.radius = (minDim / 2) * (state.settings.circle / 100);
+        scalePanels();
+    }
+
+    function scalePanels() {
+        // At 1920 × 1200 and the default 65% circle, R = 390 CSS px.
+        // Half a CSS inch is 48 px; keep that inset proportional at every size.
+        const cornerRadius = state.arena.radius * (1 - 48 / 390);
+        for (const panel of [menuPanel, pausePanel]) {
+            const halfDiagonal = Math.hypot(panel.offsetWidth, panel.offsetHeight) / 2;
+            if (halfDiagonal > 0) {
+                panel.style.setProperty('--panel-scale', cornerRadius / halfDiagonal);
+            }
+        }
+    }
+
+    function scaleOutsideUI() {
+        // Desktop page zoom changes innerWidth while outerWidth stays approximately
+        // constant. This also works when the page is first opened already zoomed.
+        // Browser sidebars/window borders can introduce a small estimation error.
+        const pageZoom = window.outerWidth > 0 ? window.outerWidth / window.innerWidth : 1;
+        const pinchZoom = window.visualViewport ? window.visualViewport.scale : 1;
+        document.documentElement.style.setProperty('--ui-scale', 1 / (pageZoom * pinchZoom));
+        // Choose the existing compact typography by the unzoomed window size so
+        // desktop zoom alone cannot switch the outside UI to phone styling.
+        document.body.classList.toggle('compact-ui',
+            window.innerWidth * pageZoom <= 600 && window.innerHeight > window.innerWidth);
     }
 
     function resetGame() {
