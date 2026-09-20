@@ -563,7 +563,7 @@
         const dist = Math.hypot(state.ball.x - centerX, state.ball.y - centerY);
         
         // Boundary check (minus ball radius and paddle thickness)
-        const collisionRadius = state.arena.radius - CONFIG.ballRadius - CONFIG.paddleOffset - CONFIG.paddleThickness/2;
+        const collisionRadius = state.arena.radius - CONFIG.ballRadius * drawingScale - (CONFIG.paddleOffset + CONFIG.paddleThickness/2) * drawingScale;
 
         if (dist >= collisionRadius) {
             const ballAngle = Math.atan2(state.ball.y - centerY, state.ball.x - centerX);
