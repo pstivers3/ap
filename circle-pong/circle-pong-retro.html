@@ -325,6 +325,7 @@
 
     let lastFrameTime = null;
     let drawingScale = 1; // Inverse browser zoom; rendering only, never collision dimensions.
+    let lastViewportMetrics = '';
 
     let state = {
         running: false,
@@ -429,7 +430,14 @@
         return val;
     }
 
+    function getViewportMetrics() {
+        const viewport = window.visualViewport;
+        return [window.innerWidth, window.innerHeight, window.outerWidth,
+            viewport?.width, viewport?.height, viewport?.scale].join(',');
+    }
+
     function resize() {
+        lastViewportMetrics = getViewportMetrics();
         const smallPhonePortrait = window.matchMedia('(hover: none) and (pointer: coarse) and (max-width: 600px) and (orientation: portrait)').matches;
         const viewport = smallPhonePortrait && window.visualViewport ? window.visualViewport : window;
         const width = Math.round(viewport.width || viewport.innerWidth);
@@ -677,6 +685,9 @@
     }
 
     function loop(timestamp) {
+        // Initial zoom/viewport measurements can settle without a resize event.
+        // Reconcile before drawing, and only resize when those inputs change.
+        if (getViewportMetrics() !== lastViewportMetrics) resize();
         const elapsedSeconds = lastFrameTime === null ? 0 : (timestamp - lastFrameTime) / 1000;
         lastFrameTime = timestamp;
         update(elapsedSeconds);
