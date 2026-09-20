@@ -632,7 +632,7 @@
         // Draw Paddle
         const startAngle = state.paddle.angle - state.paddle.size / 2;
         const endAngle = state.paddle.angle + state.paddle.size / 2;
-        const paddleRadius = state.arena.radius - CONFIG.paddleOffset - CONFIG.paddleThickness/2;
+        const paddleRadius = state.arena.radius - (CONFIG.paddleOffset + CONFIG.paddleThickness/2) * drawingScale;
 
         ctx.lineCap = 'round';
 
