@@ -311,7 +311,7 @@
         speedMultiplier: 1,
         trail: [],
         ball: { x: 0, y: 0, dx: 0, dy: 0, speed: 1, missed: false },
-        paddle: { angle: 0, size: 45 * Math.PI / 180 }, // angle is center of paddle
+        paddle: { angle: 0, previousAngle: 0, size: 45 * Math.PI / 180 }, // angle is center of paddle
         arena: { radius: 0 },
         settings: {
             speed: 1.0,
@@ -501,6 +501,7 @@
 
     function startGame() {
         resetGame();
+        state.paddle.previousAngle = state.paddle.angle;
         state.running = true;
         state.paused = false;
         lastFrameTime = performance.now();
@@ -512,6 +513,7 @@
     function togglePause() {
         if (!state.running) return;
         state.paused = !state.paused;
+        state.paddle.previousAngle = state.paddle.angle;
         lastFrameTime = performance.now();
         pausePanel.classList.toggle('hidden', !state.paused);
         pauseBtn.innerText = state.paused ? 'Resume' : 'Pause';
@@ -544,6 +546,10 @@
         state.paddle.angle = Math.atan2(clientY - centerY, clientX - centerX);
     }
 
+    function normalizeAngle(angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+    }
+
     function update(elapsedSeconds) {
         if (!state.running || state.paused) return;
 
@@ -551,6 +557,10 @@
         const paddleSpeed = 0.08;
         if (state.keys['ArrowLeft'] || state.keys['KeyA']) state.paddle.angle -= paddleSpeed;
         if (state.keys['ArrowRight'] || state.keys['KeyD']) state.paddle.angle += paddleSpeed;
+
+        const paddleMovement = normalizeAngle(state.paddle.angle - state.paddle.previousAngle);
+        const sweepCenter = state.paddle.previousAngle + paddleMovement / 2;
+        state.paddle.previousAngle = state.paddle.angle;
 
         // Velocity is in circle radii per second; convert to pixels for this frame.
         const movementScale = state.arena.radius * state.settings.speed * elapsedSeconds;
@@ -565,15 +575,23 @@
         // Boundary check (minus ball radius and paddle thickness)
         const collisionRadius = state.arena.radius - CONFIG.ballRadius * drawingScale - (CONFIG.paddleOffset + CONFIG.paddleThickness/2) * drawingScale;
 
-        if (dist >= collisionRadius) {
-            const ballAngle = Math.atan2(state.ball.y - centerY, state.ball.x - centerX);
-            
-            // Normalize angles for comparison
-            let diff = ballAngle - state.paddle.angle;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            while (diff > Math.PI) diff -= Math.PI * 2;
+        const ballAngle = Math.atan2(state.ball.y - centerY, state.ball.x - centerX);
+        let diff = normalizeAngle(ballAngle - state.paddle.angle);
+        const sweepDiff = normalizeAngle(ballAngle - sweepCenter);
+        // Keep the radial allowance small and independent of paddle speed.
+        const sweptHit = !state.ball.missed && paddleMovement !== 0 &&
+            Math.abs(dist - collisionRadius) <= 35 * drawingScale &&
+            (state.ball.x - centerX) * state.ball.dx + (state.ball.y - centerY) * state.ball.dy > 0 &&
+            Math.abs(sweepDiff) <= state.paddle.size / 2 + Math.abs(paddleMovement) / 2;
 
-            if (!state.ball.missed && Math.abs(diff) <= state.paddle.size / 2) {
+        if (dist >= collisionRadius || sweptHit) {
+            if (sweptHit && (dist < collisionRadius || Math.abs(diff) > state.paddle.size / 2)) {
+                // Use the closest paddle position on the sweep for the existing deflection.
+                const halfSweep = Math.abs(paddleMovement) / 2;
+                diff = sweepDiff - Math.max(-halfSweep, Math.min(halfSweep, sweepDiff));
+            }
+
+            if (!state.ball.missed && (sweptHit || Math.abs(diff) <= state.paddle.size / 2)) {
                 // Bounce
                 state.score++;
                 scoreEl.innerText = state.score;
