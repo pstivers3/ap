@@ -609,7 +609,7 @@
                         const hitOffset = diff / Math.max(state.paddle.size / 2, 0.15);
                         const tangentialVelocity =
                             (state.ball.dx * tangentX + state.ball.dy * tangentY) * 0.88 +
-                            hitOffset * speed * 0.22;
+                            hitOffset * speed * 0.27;
 
                         // Increase speed with each successful hit, up to Grok2's 2.15x cap.
                         const nextMultiplier = Math.min(2.15, 1 + state.score * 0.028);
