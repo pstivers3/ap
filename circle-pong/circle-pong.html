@@ -294,7 +294,7 @@
         ballRadius: 8,
         paddleThickness: 12,
         paddleOffset: 5, // distance from boundary
-        englishCoefficient: 0.02, // Paddle-motion English; adjust manually to taste.
+        englishCoefficient: 0.015, // Paddle-motion English; adjust manually to taste.
         accentColor: '#22d3ee',
         dangerColor: '#f43f5e',
         boundaryColor: 'rgba(255, 255, 255, 0.11)'
@@ -582,7 +582,7 @@
         const sweepDiff = normalizeAngle(ballAngle - sweepCenter);
         // Keep the radial allowance small and independent of paddle speed.
         const sweptHit = !state.ball.missed && paddleMovement !== 0 &&
-            Math.abs(dist - collisionRadius) <= 35 * drawingScale &&
+            Math.abs(dist - collisionRadius) <= 20 * drawingScale &&
             (state.ball.x - centerX) * state.ball.dx + (state.ball.y - centerY) * state.ball.dy > 0 &&
             Math.abs(sweepDiff) <= state.paddle.size / 2 + Math.abs(paddleMovement) / 2;
 
@@ -614,7 +614,7 @@
                             (state.arena.radius * state.settings.speed);
                         const tangentialVelocity =
                             (state.ball.dx * tangentX + state.ball.dy * tangentY) * 0.88 +
-                            hitOffset * speed * 0.27 +
+                            hitOffset * speed * 0.0 +
                             paddleTangentialVelocity * CONFIG.englishCoefficient;
 
                         // Increase speed with each successful hit, up to Grok2's 2.15x cap.
