@@ -294,6 +294,7 @@
         ballRadius: 8,
         paddleThickness: 12,
         paddleOffset: 5, // distance from boundary
+        englishCoefficient: 0.02, // Paddle-motion English; adjust manually to taste.
         accentColor: '#22d3ee',
         dangerColor: '#f43f5e',
         boundaryColor: 'rgba(255, 255, 255, 0.11)'
@@ -559,6 +560,7 @@
         if (state.keys['ArrowRight'] || state.keys['KeyD']) state.paddle.angle += paddleSpeed;
 
         const paddleMovement = normalizeAngle(state.paddle.angle - state.paddle.previousAngle);
+        const paddleAngularVelocity = elapsedSeconds > 0 ? paddleMovement / elapsedSeconds : 0;
         const sweepCenter = state.paddle.previousAngle + paddleMovement / 2;
         state.paddle.previousAngle = state.paddle.angle;
 
@@ -607,9 +609,13 @@
                     if (radialVelocity > 0) {
                         const speed = Math.hypot(state.ball.dx, state.ball.dy);
                         const hitOffset = diff / Math.max(state.paddle.size / 2, 0.15);
+                        // Convert paddle motion from pixels/second to the ball's velocity units.
+                        const paddleTangentialVelocity = paddleAngularVelocity * collisionRadius /
+                            (state.arena.radius * state.settings.speed);
                         const tangentialVelocity =
                             (state.ball.dx * tangentX + state.ball.dy * tangentY) * 0.88 +
-                            hitOffset * speed * 0.27;
+                            hitOffset * speed * 0.27 +
+                            paddleTangentialVelocity * CONFIG.englishCoefficient;
 
                         // Increase speed with each successful hit, up to Grok2's 2.15x cap.
                         const nextMultiplier = Math.min(2.15, 1 + state.score * 0.028);
