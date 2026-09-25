@@ -614,7 +614,7 @@
                             (state.arena.radius * state.settings.speed);
                         const tangentialVelocity =
                             (state.ball.dx * tangentX + state.ball.dy * tangentY) * 0.88 +
-                            hitOffset * speed * 0.0 +
+                            hitOffset * speed * 0.22 +
                             paddleTangentialVelocity * CONFIG.englishCoefficient;
 
                         // Increase speed with each successful hit, up to Grok2's 2.15x cap.
